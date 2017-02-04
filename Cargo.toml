@@ -1,0 +1,7 @@
+[package]
+name = "openh264"
+version = "0.1.0"
+authors = ["Kornel Lesiński <kornel@geekhood.net>"]
+
+[dependencies]
+openh264-sys = { path = "sys" }
