@@ -12,6 +12,7 @@ use std::default::Default;
 impl Default for TagEncParamBase { fn default() -> Self { unsafe { mem::zeroed() } } }
 impl Default for SSourcePicture { fn default() -> Self { unsafe { mem::zeroed() } } }
 impl Default for SFrameBSInfo { fn default() -> Self { unsafe { mem::zeroed() } } }
+impl Default for SEncParamExt { fn default() -> Self { unsafe { mem::zeroed() } } }
 
 #[test]
 fn poke_it() {

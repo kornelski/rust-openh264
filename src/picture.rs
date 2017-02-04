@@ -1,6 +1,7 @@
 use helpers::*;
 use super::*;
 use std::marker::PhantomData;
+use std::ptr;
 
 pub struct Picture<'data> {
     pub inner: ffi::SSourcePicture,

@@ -6,16 +6,28 @@ extern crate openh264_sys as ffi;
 
 #[macro_use]
 mod helpers;
+mod encoderptr;
 
 mod encoder;
-mod err;
+pub use encoder::*;
+
+mod error;
+pub use error::*;
+
 mod picture;
+pub use picture::*;
+
 mod frameinfo;
+pub use frameinfo::*;
 
-use std::error;
-use std::ptr;
+mod extendedparams;
+pub use extendedparams::*;
 
-
+pub fn version() -> OpenH264Version {
+    unsafe {
+        ffi::WelsGetCodecVersion()
+    }
+}
 
 pub use ffi::SEncParamBase;
 pub use ffi::EUsageType;
@@ -63,3 +75,9 @@ pub use ffi::SSpatialLayerConfig;
 pub use ffi::SSysMEMBuffer;
 pub use ffi::SVideoProperty;
 pub use ffi::SVuiSarInfo;
+
+#[test]
+fn version_test() {
+    let v = version();
+    assert_eq!(1, v.uMajor);
+}

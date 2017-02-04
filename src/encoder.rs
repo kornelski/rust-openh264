@@ -1,31 +1,47 @@
 use super::*;
 use helpers::*;
-use picture::*;
-use frameinfo::*;
-use err;
+use std::ptr;
+use encoderptr::*;
 
 pub struct SVCEncoder {
-    ptr: *mut ffi::ISVCEncoder,
+    ptr: Ptr,
+}
+
+pub trait IntoEncoder {
+    fn encoder(self) -> Result<SVCEncoder, CMError>;
+}
+
+impl IntoEncoder for SEncParamBase {
+    fn encoder(self) -> Result<SVCEncoder, CMError> {
+        SVCEncoder::new(&self)
+    }
 }
 
 impl SVCEncoder {
-    pub fn new(params: &SEncParamBase) -> Result<Self, err::Error> {
-        let mut ptr = ptr::null_mut();
+    pub fn new(params: &SEncParamBase) -> Result<Self, CMError> {
+        let ptr = Ptr::new()?;
 
-        unsafe {
-            try(ffi::WelsCreateSVCEncoder(&mut ptr))?;
-            try(cpp!(ptr.Initialize(params)))?;
-        };
+        unsafe { try(cpp!((ptr).Initialize(params))) }?;
+
+        Ok(SVCEncoder{
+            ptr: ptr,
+        })
+    }
+
+    pub fn new_ext(params: ExtendedParams) -> Result<Self, CMError> {
+        let (mut inner, ptr) = params.into_inner();
+
+        unsafe { try(cpp!((ptr).InitializeExt(&mut inner))) }?;
 
         Ok(SVCEncoder {
             ptr: ptr,
         })
     }
 
-    pub fn encode_frame(&mut self, picture: &Picture) -> Result<FrameInfo, err::Error> {
+    pub fn encode_frame(&mut self, picture: &Picture) -> Result<FrameInfo, CMError> {
         let mut info = FrameInfo::new();
         unsafe {
-            try(cpp!(self.ptr=>EncodeFrame(&picture.inner, &mut info.inner)))?
+            try(cpp!(self.EncodeFrame(&picture.inner, &mut info.inner)))?
         }
         Ok(info)
     }
@@ -41,7 +57,7 @@ impl SVCEncoder {
     #[inline]
     fn set_option<T>(&mut self, option: ffi::ENCODER_OPTION, value: &T) -> bool {
         unsafe {
-            cpp!(self.ptr=>SetOption(option, value as *const _ as *mut c_void)) == 0
+            cpp!(self.SetOption(option, value as *const _ as *mut c_void)) == 0
         }
     }
 }
@@ -49,14 +65,13 @@ impl SVCEncoder {
 impl Drop for SVCEncoder {
     fn drop(&mut self) {
         unsafe {
-            cpp!(self.ptr=>Uninitialize());
-            ffi::WelsDestroySVCEncoder(self.ptr);
+            cpp!(self.Uninitialize());
         }
     }
 }
 
 #[test]
-fn test() {
+fn test_encode() {
     let mut param = SEncParamBase::default();
     param.iUsageType = EUsageType::CAMERA_VIDEO_REAL_TIME;
     param.fMaxFrameRate = 60.;
@@ -64,7 +79,7 @@ fn test() {
     param.iPicHeight = 200;
     param.iTargetBitrate = 1000000;
 
-    let mut enc = SVCEncoder::new(&param).expect("create encoder");
+    let mut enc = param.encoder().expect("create encoder");
 
     enc.set_trace_level(1);
     enc.set_data_format(EVideoFormatType::videoFormatI420);
