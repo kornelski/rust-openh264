@@ -1,6 +1,7 @@
 use super::*;
 use helpers::*;
 use picture::*;
+use frameinfo::*;
 use err;
 
 pub struct SVCEncoder {
@@ -21,10 +22,12 @@ impl SVCEncoder {
         })
     }
 
-    pub fn encode_frame(&mut self, picture: &Picture, info: &mut SFrameBSInfo) -> Result<(), err::Error> {
+    pub fn encode_frame(&mut self, picture: &Picture) -> Result<FrameInfo, err::Error> {
+        let mut info = FrameInfo::new();
         unsafe {
-            try(cpp!(self.ptr=>EncodeFrame(&picture.inner, info)))
+            try(cpp!(self.ptr=>EncodeFrame(&picture.inner, &mut info.inner)))?
         }
+        Ok(info)
     }
 
     pub fn set_data_format(&mut self, value: EVideoFormatType) -> bool {
@@ -38,8 +41,16 @@ impl SVCEncoder {
     #[inline]
     fn set_option<T>(&mut self, option: ffi::ENCODER_OPTION, value: &T) -> bool {
         unsafe {
-            let ptr = self.ptr;
-            cpp!(ptr.SetOption(option, value as *const _ as *mut c_void)) == 0
+            cpp!(self.ptr=>SetOption(option, value as *const _ as *mut c_void)) == 0
+        }
+    }
+}
+
+impl Drop for SVCEncoder {
+    fn drop(&mut self) {
+        unsafe {
+            cpp!(self.ptr=>Uninitialize());
+            ffi::WelsDestroySVCEncoder(self.ptr);
         }
     }
 }
@@ -64,26 +75,15 @@ fn test() {
     let luma = vec![128u8; width*height];
     let cbcr = vec![128u8; (width/2)*(height/2)];
 
-    let mut info = Default::default();
-    let pic = Picture::new(width, height, EVideoFormatType::videoFormatI420, 0, &[
+    let ts = 1234;
+    let pic = Picture::new(width, height, EVideoFormatType::videoFormatI420, ts, &[
         (width, &luma),
         (width/2, &cbcr),
         (width/2, &cbcr),
     ]).expect("create pic");
 
-    enc.encode_frame(&pic, &mut info).expect("encode frame");
+    let info = enc.encode_frame(&pic).expect("encode frame");
 
-//       ASSERT_TRUE (rv == cmResultSuccess);
-//       if (info.eFrameType != videoFrameTypeSkip && cbk != NULL) {
-//        //output bitstream
-//       }
-//    }
-//
-//   Step5:teardown encoder
-//   @code
-//    if (encoder_) {
-//        encoder_->Uninitialize();
-//        WelsDestroySVCEncoder (encoder_);
-//    }
-//   @endcode*/
+    assert_eq!(ts, info.timestamp_ms());
+    assert!(info.frame_size_bytes() > 0);
 }

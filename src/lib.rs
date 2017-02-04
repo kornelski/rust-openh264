@@ -10,6 +10,7 @@ mod helpers;
 mod encoder;
 mod err;
 mod picture;
+mod frameinfo;
 
 use std::error;
 use std::ptr;
@@ -48,7 +49,6 @@ pub use ffi::SDeliveryStatus;
 pub use ffi::SDumpLayer;
 pub use ffi::SEncoderStatistics;
 pub use ffi::SEncParamExt;
-pub use ffi::SFrameBSInfo;
 pub use ffi::SLayerBSInfo;
 pub use ffi::SLevelInfo;
 pub use ffi::SliceInfo;
