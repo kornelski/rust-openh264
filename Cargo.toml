@@ -5,3 +5,6 @@ authors = ["Kornel Lesiński <kornel@geekhood.net>"]
 
 [dependencies]
 openh264-sys = { path = "sys" }
+
+[lib]
+doctest = false
