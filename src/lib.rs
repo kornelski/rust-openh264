@@ -20,6 +20,8 @@ pub use picture::*;
 mod frameinfo;
 pub use frameinfo::*;
 
+mod layers;
+
 mod extendedparams;
 pub use extendedparams::*;
 

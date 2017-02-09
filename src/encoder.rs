@@ -2,6 +2,7 @@ use super::*;
 use helpers::*;
 use std::ptr;
 use encoderptr::*;
+use layers::*;
 
 pub struct SVCEncoder {
     ptr: Ptr,
@@ -101,4 +102,8 @@ fn test_encode() {
 
     assert_eq!(ts, info.timestamp_ms());
     assert!(info.frame_size_bytes() > 0);
+    assert!(info.layers().count() > 0);
+    for layer in info.layers() {
+        assert_eq!(layer.nal_byte_size(), layer.buf().len());
+    }
 }

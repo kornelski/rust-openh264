@@ -1,4 +1,5 @@
 use super::*;
+use layers::*;
 
 pub struct FrameInfo {
     pub inner: ffi::SFrameBSInfo,
@@ -9,6 +10,14 @@ impl FrameInfo {
         FrameInfo {
             inner: Default::default()
         }
+    }
+
+    pub fn layers(&self) -> LayersIter {
+        LayersIter::new(&self.inner.sLayerInfo[..self.inner.iLayerNum as usize])
+    }
+
+    pub fn frame_type(&self) -> EVideoFrameType {
+        self.inner.eFrameType
     }
 
     pub fn frame_size_bytes(&self) -> usize {
