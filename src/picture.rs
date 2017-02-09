@@ -34,4 +34,8 @@ impl<'data> Picture<'data> {
             _datas: PhantomData,
         })
     }
+
+    pub fn set_timestamp(&mut self, timestamp_ms: u64) {
+        self.inner.uiTimeStamp = timestamp_ms as i64;
+    }
 }
