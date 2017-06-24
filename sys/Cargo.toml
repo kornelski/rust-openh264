@@ -4,6 +4,7 @@ build = "src/build.rs"
 license = "BSD-2-Clause"
 name = "openh264-sys"
 version = "0.1.0"
+categories = [ "external-ffi-bindings", "multimedia::encoding" ]
 
 [build-dependencies]
 pkg-config = "0.3.9"

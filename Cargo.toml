@@ -2,6 +2,7 @@
 name = "openh264"
 version = "0.1.0"
 authors = ["Kornel Lesiński <kornel@geekhood.net>"]
+categories = [ "multimedia::video", "multimedia::encoding", "api-bindings" ]
 
 [dependencies]
 openh264-sys = { path = "sys" }
